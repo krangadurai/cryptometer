@@ -1,27 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>WebSocket Client</title>
+  <script src="https://cdn.jsdelivr.net/npm/gridjs/dist/gridjs.umd.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
 </head>
+
 <body>
   <h1>WebSocket Client Example</h1>
+  <div id="table"></div>
   <script>
-    const socket = new WebSocket('ws://localhost:8080');
+   
+    let topGainers = [];
+    // const mygrid = new gridjs.Grid({
+    //     columns: ["Symbols", "price", "24hour Change"], // Adjust column names based on your received data
+    //     search: true,
+    //     pagination: {
+    //       limit: 10
+    //     },
+    //     data: topGainers,
+    //     // className: {
+    //     //   table: 'table-body'
+    //     // },
+    //     // language: {
+    //     //   'search': {
+    //     //     'placeholder': '🔍 Search symbols'
+    //     //   },
+    //     //   'pagination': {
+    //     //     'previous': '⬅️',
+    //     //     'next': '➡️',
+    //     //     'showing': '👓 Displaying',
+    //     //     'results': () => 'Records'
+    //     //   }
+    //     // }
+    //   }).render(document.getElementById("table"));
+    function startWebSocket() {
+      const socket = new WebSocket('ws://localhost:8080');
+      socket.onopen = function () {
+        console.log('Connected to WebSocket server');
+      };
 
-    socket.onopen = function() {
-      console.log('Connected to WebSocket server');
-    };
+      socket.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        // console.log('Received data from server:', data);
+        // Add logic to handle the received data here
+        if (data.path === "topgainer") {
+          console.log(data.data)
+          let loopData = data.data;
+          // const result = loopData.filter((word) => word.s.substr(-4) ==='USDT');
 
-    socket.onmessage = function(event) {
-      const data = JSON.parse(event.data);
-      console.log('Received data from server:', data);
-      // Add logic to handle the received data here
-    };
+          let loopDataInnnerText = '<table><tr><td>Symobols</td> <td>Price</td><td>24h change</td></tr>';
+          loopData.forEach(element => {
+            topGainers.push([element.s, element.p, element.P]);
+            loopDataInnnerText += `<tr><td>${element.s}</td><td>${element.p}</td><td>${element.P}</td></tr>`;
+          });
+          const result = loopData.filter((word) => word.s.substr(-4) === 'USDT');
+          console.log(result);
 
-    socket.onclose = function(event) {
+          // result.forEach(element => {
+          //   topGainers.push([element.s, element.p, element.P]);
+          //   loopDataInnnerText+=`<tr><td>${element.s}</td><td>${element.p}</td><td>${element.P}</td></tr>`;
+          // });
+
+          //  console.log('data')
+          var table = document.getElementById("table");
+
+          loopDataInnnerText += '</table>'
+          table.innerHTML = loopDataInnnerText;
+          socket.close();
+        }
+
+      }
+      socket.onclose = function (event) {
       console.log('Disconnected from WebSocket server');
+      setTimeout(() => {
+        startWebSocket();
+      }, 3000);
     };
+    } 
+   
+    startWebSocket()
   </script>
+
 </body>
+
 </html>

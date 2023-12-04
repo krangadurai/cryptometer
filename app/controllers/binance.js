@@ -12,18 +12,24 @@ function connectToWebSockets() {
   webSockets.forEach((ws, index) => {
     ws.on('message', (data) => {
       const ticker = JSON.parse(data);
-    //   console.log(ticker)
       ticker.forEach((element) => handleTickerData(element, index));
-      sendSymbolData(symbolData);
+      sendSymbolData(symbolData, 'all');
+      if (index === 0) {
+        ticker.sort((a, b) => {
+          const priceChangeA = parseFloat(a.P);
+          const priceChangeB = parseFloat(b.P);
+          return priceChangeB - priceChangeA;
+        });
+        sendSymbolData(ticker, 'topgainer');
+        ticker.sort((a, b) => {
+          const priceChangeA = parseFloat(a.P);
+          const priceChangeB = parseFloat(b.P);
+          return priceChangeA - priceChangeB;
+        });
+        sendSymbolData(ticker, 'toploser');
+      }
     });
 
-    ws.on('open', () => {
-      console.log(`Connected to ${ws.url}`);
-    });
-
-    ws.on('error', (error) => {
-      console.error(`WebSocket error at ${ws.url}:`, error);
-    });
   });
 }
 
@@ -32,19 +38,39 @@ function handleTickerData(ticker, index) {
     symbolData[ticker.s] = {};
   }
   symbolData[ticker.s][ticker.e] = ticker;
-  //console.log(symbolData);
- 
 }
 
 connectToWebSockets();
 
 const wss = new WebSocket.Server({ port: 8080 });
-function sendSymbolData(updatedData) {
-    
+
+function sendSymbolData(updatedData, path) {
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
-       // console.log(updatedData)
-      client.send(JSON.stringify(updatedData));
+      switch (path) {
+        case '/topgainer':
+          const dataForTopGainer = {
+            path: path,
+            data: updatedData,
+          };
+          client.send(JSON.stringify(dataForTopGainer));
+          break;
+        case '/toploser':
+          const dataForTopLoser = {
+            path: path,
+            data: updatedData,
+          };
+          client.send(JSON.stringify(dataForTopLoser));
+          break;
+        default:
+          const dataForDefault = {
+            path: path,
+            data: updatedData,
+          };
+          client.send(JSON.stringify(dataForDefault));
+          break;
+      }
     }
   });
 }
+
