@@ -42,7 +42,7 @@ function handleTickerData(ticker, index) {
 
 connectToWebSockets();
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 4589 });
 
 function sendSymbolData(updatedData, path) {
   wss.clients.forEach((client) => {
