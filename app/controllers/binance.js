@@ -1,4 +1,4 @@
-const WebSocket = require('ws');
+const WebSocket = global.WebSocket || global.MozWebSocket || require('ws')
 
 let symbolData = {}; // 24-hour, 1-hour, 4-hour data
 
@@ -8,8 +8,6 @@ function connectToWebSockets() {
     new WebSocket('wss://stream.binance.com:9443/ws/!ticker_1h@arr'),
     new WebSocket('wss://stream.binance.com:9443/ws/!ticker_4h@arr'),
   ];
-  console.log('hia')
-
   webSockets.forEach((ws, index) => {
     ws.on('message', (data) => {
       const ticker = JSON.parse(data);

@@ -14,6 +14,7 @@
   <script>
    
     let topGainers = [];
+    let previousPrice={};
     // const mygrid = new gridjs.Grid({
     //     columns: ["Symbols", "price", "24hour Change"], // Adjust column names based on your received data
     //     search: true,
@@ -37,7 +38,7 @@
     //     // }
     //   }).render(document.getElementById("table"));
     function startWebSocket() {
-      const socket = new WebSocket('ws://localhost:8080');
+      const socket = new WebSocket('ws://localhost:4589');
       socket.onopen = function () {
         console.log('Connected to WebSocket server');
       };
@@ -51,11 +52,20 @@
           let loopData = data.data;
           // const result = loopData.filter((word) => word.s.substr(-4) ==='USDT');
 
-          let loopDataInnnerText = '<table><tr><td>Symobols</td> <td>Price</td><td>24h change</td></tr>';
+          let loopDataInnnerText = '<table><tr><td>Symobols</td><td>Previous Price</td> <td>Price</td><td>24h change</td></tr>';
           loopData.forEach(element => {
+            console.log(!previousPrice[element.s])
+            if(!previousPrice[element.s]){
+              loopDataInnnerText += `<tr><td>${element.s}</td><td>${element.p}</td><td>${element.p}</td><td>${element.P}</td></tr>`;
+              previousPrice[element.s] = element.p;
+            }else{
+              loopDataInnnerText += `<tr><td>${element.s}</td><td>${previousPrice[element.s]}</td><td>${element.p}</td><td>${element.P}</td></tr>`;
+              setValue(element.s,element.p)
+            }
+           
             topGainers.push([element.s, element.p, element.P]);
-            loopDataInnnerText += `<tr><td>${element.s}</td><td>${element.p}</td><td>${element.P}</td></tr>`;
           });
+
           const result = loopData.filter((word) => word.s.substr(-4) === 'USDT');
           console.log(result);
 
@@ -69,6 +79,7 @@
 
           loopDataInnnerText += '</table>'
           table.innerHTML = loopDataInnnerText;
+          console.log(previousPrice)
           socket.close();
         }
 
@@ -80,10 +91,15 @@
       }, 3000);
     };
     } 
+     function setValue(symbols,price){
+      setTimeout(() => {
+        previousPrice[symbols]= price;
+      }, 3000);
+     }
    
     startWebSocket()
   </script>
-
 </body>
+
 
 </html>
