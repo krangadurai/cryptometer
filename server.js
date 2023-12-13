@@ -20,7 +20,7 @@ app.use(
 
 // Express server setup
 // set port, listen for requests
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4588;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
